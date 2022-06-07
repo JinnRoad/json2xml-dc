@@ -1,0 +1,32 @@
+# TODO
+- research what to do with geo data then consult rachel
+- begin conversion process with sample JSON
+- once that works, make COPIES of real data and use that
+
+# INFO
+- rachel orliago is determining what we need to move to dublin core
+- keep groups: keep the information
+- keep json:date_taken
+
+# QUESTIONS
+- WAIT: rachel will find better dc fields for tag in tags
+- which dc:field does the json:groups field go into?
+- does preservica pull in the EXIF date meta from the modern image files?
+
+# First, look at json file and specify field conversions
+# Second, look at XML file and specify the other neccessary fields
+
+json            xml
+
+name            title
+description     subject
+date_taken      date
+?geo            latitude, longitude, accuracy
+groups          ??
+tag in tags     ??
+                contributer: Institution: Northern Essex Community College
+                type: still image
+                type: Photographs
+                format: image/tiff
+                identifier: filename
+                coverage: Massachusetts -- Essex (county) -- Haverhill
