@@ -3,22 +3,7 @@
 
 import json
 from pprint import pprint
-from xml.etree.ElementTree import Element, tostring
-from dicttoxml import dicttoxml
-
-json_path = r'sample-files/photo_4583705695.json'
-
-def main():
-    with open(json_path) as file:
-        json_data = list(json.load(file).items())
-    data = filter_fields(json_data, json2xml_fields)
-    pprint(data)
-    data = add_fields(data, json_path)
-    pprint(data)
-    #picture_xml = dict2xml_CHANGE('TEST', data) # change to list2xml
-    print()
-    #print(tostring(picture_xml))
-    #print(dicttoxml(filtered_data))
+import pathlib
 
 json2xml_fields = {
     'name': 'title',
@@ -27,9 +12,23 @@ json2xml_fields = {
     'tags': 'tags',
     }
 
-def filter_fields(data, fields):
+def flickr2dc(json_path):
+    with open(json_path) as file:
+        list_data = list(json.load(file).items())
+    inspect('json', list_data)
+    filtered_json = filter_fields(list_data, json2xml_fields)
+    inspect('filtered', filtered_json)
+    added_json = add_fields(filtered_json, json_path)
+    inspect('fields added', added_json)
+    xml_string = list2xml(added_json) # change to list2xml
+    inspect('xml string', xml_string, use_pprint=False)
+    xml_name = make_xml_file(json_path)
+    with open(xml_name, 'w') as file:
+        file.write(xml_string)
+
+def filter_fields(json_data, fields):
     filtered_data = []
-    for k, v in data:
+    for k, v in json_data:
         if k == 'tags':
             v = ','.join(tag['tag'] for tag in v)
         if k in fields:
@@ -37,41 +36,57 @@ def filter_fields(data, fields):
             filtered_data.append((k, v))
     return filtered_data
 
-def add_fields(data, json_path):
+def add_fields(json_data, json_path):
     # Use list as look up and keys{}, vals{} are unnecessary.
     default_xml_fields = {
         'subject': '',
         'type': 'Photographs',
-        'identifier': (get_filename, json_path),
+        'identifier': (get_id, json_path),
+        'coverage': (get_coverage, json_data),
     }
     for k, v in default_xml_fields.items():
         # Values are usually strings, but if a function is at index
         # 0, then call the function using the parameters in the rest
         # of the value.
-        try isinstance(v, str) or callable(v[0]):
+        try:
+            if callable(v[0]):
+                f = v[0]
+                args = v[1:]
+                v = f(*args)
+        except IndexError:
             pass
-        except TypeError:
-            raise Exception('Value in default field is not string or tuple beginning with function', k)
-        if callable(v)[0]:
-            v = v(*v[1:])
-        data.append((k, v))
-    # TODO Add fields to input data
-    # TODO Add functions as needed
-    return data
+        json_data.append(('dc:' + k, v))
+    return json_data
 
-def get_filename():
-    pass
+def get_id(json_path):
+    return pathlib.Path(json_path).stem
 
-def list2xml(tag, d):  # TODO read through code carefully
-    # From [insert website]
-    raise NotImplemented
-    elem = Element(tag)
-    for key, val in d.items():
-        # create an Element
-        # class object
-        child = Element(key)
-        child.text = str(val)
-        elem.append(child)
-    return elem
+def get_coverage(json_data):
+    for field, value in json_data:
+        if 'tags' in field:
+            if 'lawrence' in value.lower():
+                return 'Lawrence'
+            if 'haverhill' in value.lower():
+                return 'Haverhill'
+            return ''
 
-main()
+def list2xml(list_data):
+    xml_header = '<oai_dc:dc xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/oai_dc.xsd">'
+    xml_footer = '</oai_dc:dc>'
+    xml_list = []
+    xml_list.append(xml_header)
+    for field, value in list_data:
+        xml_list.append(f'    <{field}>{value}</{field}>')
+    xml_list.append(xml_footer)
+    return '\n'.join(xml_list)
+
+def make_xml_file(json_path):
+    return pathlib.Path(json_path).with_suffix('.xml')
+
+def inspect(title, data, use_pprint=True):
+    print(title)
+    pprint(data) if use_pprint else print(data)
+    print()
+
+json_path = r'sample-files/photo_4583705695.json'
+flickr2dc(json_path)
