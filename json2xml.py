@@ -1,9 +1,18 @@
 # TODO Add comments
-# TODO Convert lists to XML
+# TODO ? type or format
+# TODO look for the album information JSON on the external storage. use <dc:album></dc:album>.
+# TODO allow to run on entire directory, probably using pathlib
 
-import json
 from pprint import pprint
+import json
 import pathlib
+import sys
+
+def main():
+    # Test value
+    # json_path = r'json/photo_4583705695.json'
+    for json in sys.argv[1:]:
+        flickr2dc(json)
 
 json2xml_fields = {
     'name': 'title',
@@ -15,15 +24,15 @@ json2xml_fields = {
 def flickr2dc(json_path):
     with open(json_path) as file:
         list_data = list(json.load(file).items())
-    inspect('json', list_data)
+    #inspect('json', list_data)
     filtered_json = filter_fields(list_data, json2xml_fields)
-    inspect('filtered', filtered_json)
+    #inspect('filtered', filtered_json)
     added_json = add_fields(filtered_json, json_path)
-    inspect('fields added', added_json)
+    #inspect('fields added', added_json)
     xml_string = list2xml(added_json) # change to list2xml
     inspect('xml string', xml_string, use_pprint=False)
-    xml_name = make_xml_file(json_path)
-    with open(xml_name, 'w') as file:
+    xml_filename = make_xml_file(json_path)
+    with open(xml_filename, 'w') as file:
         file.write(xml_string)
 
 def filter_fields(json_data, fields):
@@ -38,41 +47,54 @@ def filter_fields(json_data, fields):
 
 def add_fields(json_data, json_path):
     # Use list as look up and keys{}, vals{} are unnecessary.
-    default_xml_fields = {
-        'subject': '',
-        'type': 'Photographs',
-        'identifier': (get_id, json_path),
-        'coverage': (get_coverage, json_data),
-    }
-    for k, v in default_xml_fields.items():
+    default_xml_fields = (
+        ('contributer', 'Institution: Northern Essex Community College'),
+        ('type', 'still image'),
+        ('type', 'Photographs'),
+        ('format', 'jpg'),
+        ('identifier', (get_id, json_path)),
+        ('coverage', (get_coverage, json_data)),
+    )
+    for field, value in default_xml_fields:
         # Values are usually strings, but if a function is at index
         # 0, then call the function using the parameters in the rest
         # of the value.
         try:
-            if callable(v[0]):
-                f = v[0]
-                args = v[1:]
-                v = f(*args)
+            if callable(value[0]):
+                function = value[0]
+                args = value[1:]
+                value = function(*args)
         except IndexError:
             pass
-        json_data.append(('dc:' + k, v))
+        if value:
+            json_data.append(('dc:' + field, value))
     return json_data
 
 def get_id(json_path):
-    return pathlib.Path(json_path).stem
+    return pathlib.Path(json_path).stem + '.jpg'
 
 def get_coverage(json_data):
+    coverage_base = 'Massachusetts -- Essex (count) -- '
     for field, value in json_data:
         if 'tags' in field:
             if 'lawrence' in value.lower():
-                return 'Lawrence'
+                return coverage_base + 'Lawrence'
             if 'haverhill' in value.lower():
-                return 'Haverhill'
+                return coverage_base + 'Haverhill'
             return ''
 
 def list2xml(list_data):
-    xml_header = '<oai_dc:dc xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/oai_dc.xsd">'
-    xml_footer = '</oai_dc:dc>'
+    xml_header = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+        '  <'
+        'oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"\n'
+        'xmlns:dc="http://purl.org/dc/elements/1.1/"\n'
+        'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n'
+        'xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc"\n'
+        'http://www.openarchives.org/OAI/2.0/oai_dc.xsd"'
+        '>'
+        )
+    xml_footer = '  </oai_dc:dc>'
     xml_list = []
     xml_list.append(xml_header)
     for field, value in list_data:
@@ -84,9 +106,8 @@ def make_xml_file(json_path):
     return pathlib.Path(json_path).with_suffix('.xml')
 
 def inspect(title, data, use_pprint=True):
-    print(title)
+    print(title.upper())
     pprint(data) if use_pprint else print(data)
     print()
 
-json_path = r'sample-files/photo_4583705695.json'
-flickr2dc(json_path)
+main()

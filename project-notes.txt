@@ -19,7 +19,8 @@
 json            xml
 
 name            title
-description     subject
+subject         Northern Essex Community College
+description     description
 date_taken      date
 ?geo            latitude, longitude, accuracy
 groups          ??
