@@ -1,5 +1,4 @@
 # TODO Add comments
-# TODO ? type or format
 # TODO look for the album information JSON on the external storage. use <dc:album></dc:album>.
 # TODO allow to run on entire directory, probably using pathlib
 
@@ -7,12 +6,20 @@ from pprint import pprint
 import json
 import pathlib
 import sys
+import os
 
 def main():
     # Test value
-    # json_path = r'json/photo_4583705695.json'
-    for json in sys.argv[1:]:
-        flickr2dc(json)
+    # json_file = r'json/photo_4583705695.json'
+    output_dir = sys.argv[-1]
+    if os.path.exists(output_dir):
+        if not os.path.isdir(output_dir):
+            raise Exception('Final argument must be a directory or a non-existent directory')
+    else:
+        os.system(f'mkdir {output_dir}')
+    for json_file in sys.argv[1:-1]:
+        xml_file = flickr2dc(output_dir, json_file)
+        print(f'{json_file} -> {xml_file}')
 
 json2xml_fields = {
     'name': 'title',
@@ -21,19 +28,20 @@ json2xml_fields = {
     'tags': 'tags',
     }
 
-def flickr2dc(json_path):
-    with open(json_path) as file:
+def flickr2dc(output_dir, json_file):
+    with open(json_file) as file:
         list_data = list(json.load(file).items())
     #inspect('json', list_data)
     filtered_json = filter_fields(list_data, json2xml_fields)
     #inspect('filtered', filtered_json)
-    added_json = add_fields(filtered_json, json_path)
+    added_json = add_fields(filtered_json, json_file)
     #inspect('fields added', added_json)
     xml_string = list2xml(added_json) # change to list2xml
-    inspect('xml string', xml_string, use_pprint=False)
-    xml_filename = make_xml_file(json_path)
-    with open(xml_filename, 'w') as file:
+    #inspect('xml string', xml_string, use_pprint=False)
+    xml_file = make_xml_file(output_dir, json_file)
+    with open(xml_file, 'w') as file:
         file.write(xml_string)
+    return xml_file
 
 def filter_fields(json_data, fields):
     filtered_data = []
@@ -45,14 +53,14 @@ def filter_fields(json_data, fields):
             filtered_data.append((k, v))
     return filtered_data
 
-def add_fields(json_data, json_path):
+def add_fields(json_data, json_file):
     # Use list as look up and keys{}, vals{} are unnecessary.
     default_xml_fields = (
         ('contributer', 'Institution: Northern Essex Community College'),
         ('type', 'still image'),
         ('type', 'Photographs'),
         ('format', 'jpg'),
-        ('identifier', (get_id, json_path)),
+        ('identifier', (get_id, json_file)),
         ('coverage', (get_coverage, json_data)),
     )
     for field, value in default_xml_fields:
@@ -70,8 +78,8 @@ def add_fields(json_data, json_path):
             json_data.append(('dc:' + field, value))
     return json_data
 
-def get_id(json_path):
-    return pathlib.Path(json_path).stem + '.jpg'
+def get_id(json_file):
+    return pathlib.Path(json_file).stem + '.jpg'
 
 def get_coverage(json_data):
     coverage_base = 'Massachusetts -- Essex (count) -- '
@@ -102,8 +110,8 @@ def list2xml(list_data):
     xml_list.append(xml_footer)
     return '\n'.join(xml_list)
 
-def make_xml_file(json_path):
-    return pathlib.Path(json_path).with_suffix('.xml')
+def make_xml_file(output_dir, json_file):
+    return pathlib.Path(output_dir) / pathlib.Path(json_file).name.replace('.json', '.xml')
 
 def inspect(title, data, use_pprint=True):
     print(title.upper())
