@@ -9,14 +9,20 @@ import pathlib
 import sys
 import os
 
+limit = 50
+
 def main():
-    # Test value
-    # json_file = r'json/photo_4583705695.json'
     if not os.path.exists('xml'):
         os.system(f'mkdir xml')
-    for json_file in sys.argv[1:]:
+    directory = pathlib.Path('json')
+    glob_str = 'photo_*.json'
+    file_count = 0
+    for json_file in directory.glob(glob_str):
         xml_file = flickr2dc(json_file)
-        print(f'{json_file} -> {xml_file}')
+        file_count += 1
+        if file_count > limit:
+            break
+    print(f'done: {file_count} files', flush=True)
 
 json2xml_fields = {
     'name': 'title',
@@ -33,7 +39,7 @@ def flickr2dc(json_file):
     #inspect('filtered', filtered_json)
     added_json = add_fields(filtered_json, json_file)
     #inspect('fields added', added_json)
-    xml_string = list2xml(added_json) # change to list2xml
+    xml_string = list2xml(added_json)
     #inspect('xml string', xml_string, use_pprint=False)
     xml_file = make_xml_file(json_file)
     with open(xml_file, 'w') as file:
@@ -82,10 +88,10 @@ def get_coverage(json_data):
     coverage_base = 'Massachusetts -- Essex (count) -- '
     for field, value in json_data:
         if 'tags' in field:
-            if 'lawrence' in value.lower():
-                return coverage_base + 'Lawrence'
             if 'haverhill' in value.lower():
                 return coverage_base + 'Haverhill'
+            if 'lawrence' in value.lower():
+                return coverage_base + 'Lawrence'
             return ''
 
 def list2xml(list_data):
