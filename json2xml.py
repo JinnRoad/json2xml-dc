@@ -1,6 +1,7 @@
 # TODO Add comments
 # TODO look for the album information JSON on the external storage. use <dc:album></dc:album>.
 # TODO allow to run on entire directory, probably using pathlib
+# TODO ? I have tags like BillZanini. Do you want these converted to Bill Zanini?
 
 from pprint import pprint
 import json
@@ -11,14 +12,10 @@ import os
 def main():
     # Test value
     # json_file = r'json/photo_4583705695.json'
-    output_dir = sys.argv[-1]
-    if os.path.exists(output_dir):
-        if not os.path.isdir(output_dir):
-            raise Exception('Final argument must be a directory or a non-existent directory')
-    else:
-        os.system(f'mkdir {output_dir}')
-    for json_file in sys.argv[1:-1]:
-        xml_file = flickr2dc(output_dir, json_file)
+    if not os.path.exists('xml'):
+        os.system(f'mkdir xml')
+    for json_file in sys.argv[1:]:
+        xml_file = flickr2dc(json_file)
         print(f'{json_file} -> {xml_file}')
 
 json2xml_fields = {
@@ -28,7 +25,7 @@ json2xml_fields = {
     'tags': 'tags',
     }
 
-def flickr2dc(output_dir, json_file):
+def flickr2dc(json_file):
     with open(json_file) as file:
         list_data = list(json.load(file).items())
     #inspect('json', list_data)
@@ -38,7 +35,7 @@ def flickr2dc(output_dir, json_file):
     #inspect('fields added', added_json)
     xml_string = list2xml(added_json) # change to list2xml
     #inspect('xml string', xml_string, use_pprint=False)
-    xml_file = make_xml_file(output_dir, json_file)
+    xml_file = make_xml_file(json_file)
     with open(xml_file, 'w') as file:
         file.write(xml_string)
     return xml_file
@@ -92,26 +89,28 @@ def get_coverage(json_data):
             return ''
 
 def list2xml(list_data):
+    indent1 = 8 * ' '
+    indent2 = 10 * ' '
     xml_header = (
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
-        '  <'
-        'oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"\n'
-        'xmlns:dc="http://purl.org/dc/elements/1.1/"\n'
-        'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n'
-        'xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc"\n'
+        f'{indent1}<'
+        'oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" '
+        'xmlns:dc="http://purl.org/dc/elements/1.1/" '
+        'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+        'xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ '
         'http://www.openarchives.org/OAI/2.0/oai_dc.xsd"'
         '>'
         )
-    xml_footer = '  </oai_dc:dc>'
+    xml_footer = f'{indent1}</oai_dc:dc>'
     xml_list = []
     xml_list.append(xml_header)
     for field, value in list_data:
-        xml_list.append(f'    <{field}>{value}</{field}>')
+        xml_list.append(f'{indent2}<{field}>{value}</{field}>')
     xml_list.append(xml_footer)
     return '\n'.join(xml_list)
 
-def make_xml_file(output_dir, json_file):
-    return pathlib.Path(output_dir) / pathlib.Path(json_file).name.replace('.json', '.xml')
+def make_xml_file(json_file):
+    return pathlib.Path('xml') / pathlib.Path(json_file).name.replace('.json', '.xml')
 
 def inspect(title, data, use_pprint=True):
     print(title.upper())
