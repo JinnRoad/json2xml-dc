@@ -1,3 +1,14 @@
+"""
+Use
+    Put all images in one directory.
+    Put all json in one directory.
+        Otherwise, you may encounter path length issues.
+    Run in this directory. This script will reference the parent directory.
+"""
+
+# TODO load album json to find album
+# TODO pass jpgname to flickr2dc
+
 # TODO Add comments
 # TODO look for the album information JSON on the external storage. use <dc:album></dc:album>.
 # TODO allow to run on entire directory, probably using pathlib
@@ -8,21 +19,34 @@ import json
 import pathlib
 import sys
 import os
+import subprocess
 
 limit = 50
 
 def main():
+    os.chdir('..')
+    setup()
+    pic_dir = pathlib.Path('pictures')
+    json_dir = pathlib.Path('json')
+    if not os.path.exists(pic_dir):
+        raise Exception('Directory `pictures` must exist and be populated.')
+    if not os.path.exists(json_dir):
+        raise Exception('Directory `json` must exist and be populated.')
     if not os.path.exists('xml'):
         os.system(f'mkdir xml')
-    directory = pathlib.Path('json')
-    glob_str = 'photo_*.json'
+    #glob_str = '*/photo_*.json'
+    #glob_str = '*/photo_*.json'
     file_count = 0
-    for json_file in directory.glob(glob_str):
-        xml_file = flickr2dc(json_file)
+    #for json_file in directory.glob(glob_str):
+    for jpg_file in pic_dir.iterdir():
         file_count += 1
-        if file_count > limit:
+        id, json_file = find_json(jpg_file)  # number and json filename
+        album = find_album(
+        #xml_file = flickr2dc(json_file)
+        if file_count >= limit:
             break
     print(f'done: {file_count} files', flush=True)
+    os.system('wc -l json_not_found')
 
 json2xml_fields = {
     'name': 'title',
@@ -31,7 +55,12 @@ json2xml_fields = {
     'tags': 'tags',
     }
 
+def setup():
+    with open('json_not_found' , 'w') as file:
+        file.write('')
+
 def flickr2dc(json_file):
+    find_album(json_file)
     with open(json_file) as file:
         list_data = list(json.load(file).items())
     #inspect('json', list_data)
@@ -45,6 +74,20 @@ def flickr2dc(json_file):
     with open(xml_file, 'w') as file:
         file.write(xml_string)
     return xml_file
+
+def find_json(jpg_file):
+    id = jpg_file.stem[9:20]
+    json_filename = f'photo_{id}.json'
+    json_file = find(json_filename, 'json')
+    if not json_file:
+        with open('json_not_found', 'a') as file:
+            file.write(jpg_file + '\n')
+    return id, json_file
+
+def find(name, path):
+    for root, dirs, files in os.walk(path):
+        if name in files:
+            return os.path.join(root, name)
 
 def filter_fields(json_data, fields):
     filtered_data = []
