@@ -22,10 +22,12 @@ import os
 import subprocess
 
 limit = 50
+albums_path = 'e:/flickr-downloads/test/json/data_part1/albums.json'
 
 def main():
     os.chdir('..')
     setup()
+    albums = load_albums(albums_path)
     pic_dir = pathlib.Path('pictures')
     json_dir = pathlib.Path('json')
     if not os.path.exists(pic_dir):
@@ -35,13 +37,11 @@ def main():
     if not os.path.exists('xml'):
         os.system(f'mkdir xml')
     #glob_str = '*/photo_*.json'
-    #glob_str = '*/photo_*.json'
     file_count = 0
-    #for json_file in directory.glob(glob_str):
     for jpg_file in pic_dir.iterdir():
         file_count += 1
-        id, json_file = find_json(jpg_file)  # number and json filename
-        album = find_album(
+        photo_id, json_file = find_json(jpg_file)  # number and json filename
+        album = find_album(photo_id)
         #xml_file = flickr2dc(json_file)
         if file_count >= limit:
             break
@@ -76,18 +76,26 @@ def flickr2dc(json_file):
     return xml_file
 
 def find_json(jpg_file):
-    id = jpg_file.stem[9:20]
-    json_filename = f'photo_{id}.json'
+    photo_id = jpg_file.stem[9:20]
+    json_filename = f'photo_{photo_id}.json'
     json_file = find(json_filename, 'json')
     if not json_file:
         with open('json_not_found', 'a') as file:
             file.write(jpg_file + '\n')
-    return id, json_file
+    return photo_id, json_file
 
 def find(name, path):
     for root, dirs, files in os.walk(path):
         if name in files:
             return os.path.join(root, name)
+
+def load_albums(albums_path):
+    with open(albums_path) as file:
+        album_json = json.load(file)
+    print(album_json)
+
+def find_album(photo_id):
+    print(photo_id, flush=True)
 
 def filter_fields(json_data, fields):
     filtered_data = []
