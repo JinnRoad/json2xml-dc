@@ -1,0 +1,62 @@
+./json/data_part6/photo_32235883188.json
+
+{
+	"id": "32235883188",
+	"name": "_D__3676",
+	"description": "",
+	"count_views": "0",
+	"count_faves": "0",
+	"count_comments": "0",
+	"date_taken": "2018-10-13 10:10:18",
+	"count_tags": "4",
+	"count_notes": "0",
+	"rotation": 0,
+	"date_imported": "2018-11-29 12:53:46",
+	"photopage": "https://www.flickr.com/photos/49960088@N04/32235883188/",
+	"original": "https://live.staticflickr.com/4839/32235883188_606f6b9f4e_o.jpg",
+	"license": "All Rights Reserved",
+	"geo": [
+
+	],
+	"groups": [
+
+	],
+	"albums": [
+
+	],
+	"tags": [
+		{
+			"tag": "Homecoming & 5k",
+			"user": "https://www.flickr.com/photos/49960088@N04/",
+			"date_create": "2018-11-29 12:53:49"
+		},
+		{
+			"tag": "CampusClassic",
+			"user": "https://www.flickr.com/photos/49960088@N04/",
+			"date_create": "2018-11-29 12:53:49"
+		},
+		{
+			"tag": "campus",
+			"user": "https://www.flickr.com/photos/49960088@N04/",
+			"date_create": "2018-11-29 12:53:49"
+		},
+		{
+			"tag": "classic",
+			"user": "https://www.flickr.com/photos/49960088@N04/",
+			"date_create": "2018-11-29 12:53:49"
+		}
+	],
+	"people": [
+
+	],
+	"notes": [
+
+	],
+	"privacy": "private",
+	"comment_permissions": "only you",
+	"tagging_permissions": "only you",
+	"safety": "restricted",
+	"comments": [
+
+	]
+}

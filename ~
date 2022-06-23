@@ -21,15 +21,13 @@ Use
 # TODO allow to run on entire directory, probably using pathlib
 
 from pprint import pprint
-import datetime
 import json
-import os
 import pathlib
-import subprocess
 import sys
+import os
+import subprocess
 
-report_limit = 200
-run_limit = 5000
+limit = 50
 albums_path = 'e:/flickr-downloads/test/json/data_part1/albums.json'
 BASEFILENAME = {'jpg': 0, 'json': 1}['jpg']  # Determine if the XML file be named after the jpg or the json file
 
@@ -59,24 +57,22 @@ def main():
         photo_json = get_json(json_filename)
         album_memberships = find_albums(photo_id, albums)
         xml_file = flickr2dc(jpg_filename, json_filename, photo_id, photo_json, album_memberships)
-        if not file_count % report_limit:
-            print(f'{str(datetime.datetime.now())[:16]} files done {file_count}', flush=True)
-        if file_count >= run_limit:
+        if file_count >= limit:
             break
-    print(f'\n{file_count} files converted', flush=True)
+    print(f'done: {file_count} files', flush=True)
     os.system('wc -l json_not_found')
 
 def setup():
     with open('json_not_found' , 'w') as file:
         file.write('')
 
-def find_json(jpg_filename):
-    photo_id = str(jpg_filename).split('_')[-2]
+def find_json(jpg_file):
+    photo_id = jpg_file.stem[9:20]
     json_filename = f'photo_{photo_id}.json'
     json_filename = find(json_filename, 'json')
     if not json_filename:
         with open('json_not_found', 'a') as file:
-            file.write(str(jpg_filename) + '\n')
+            file.write(jpg_file + '\n')
     return photo_id, json_filename
 
 def find(name, path):
@@ -102,11 +98,15 @@ def get_json(json_filename):
 
 def flickr2dc(jpg_filename, json_filename, photo_id, photo_json, album_memberships):
     xml_filename = make_xml_file([jpg_filename, json_filename][BASEFILENAME])
-    filetered_fields = filter_fields(photo_json, json2xml_fields)
-    added_fields = add_fields(filetered_fields, jpg_filename, album_memberships)
-    xml_string = list2xml(added_fields)
+    xml_fields = filter_fields(photo_json, json2xml_fields)
+    xml_fields = add_fields(photo_json, jpg_filename, album_memberships)
+    xml_string = list2xml(xml_fields)
     with open(xml_filename, 'w') as file:
         file.write(xml_string)
+    #inspect('json', list_data)
+    #inspect('filtered', filtered_json)
+    #inspect('fields added', added_json)
+    #inspect('xml string', xml_string, use_pprint=False)
     return xml_filename
 
 def filter_fields(json_data, fields):
@@ -129,7 +129,7 @@ def add_fields(json_data, jpg_filename, album_memberships):
         ('type', 'Photographs'),
         ('format', 'jpg'),
         ('albums', album_memberships),
-        ('identifier', str(jpg_filename).split('\\')[1]),
+        ('identifier', jpg_filename),
         ('coverage', get_coverage(json_data)),
     )
     for field, value in default_xml_fields:
@@ -182,4 +182,3 @@ def inspect(title, data, use_pprint=True):
     print()
 
 main()
-

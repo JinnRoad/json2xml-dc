@@ -31,3 +31,4 @@ tag in tags     ??
                 format: image/tiff
                 identifier: filename
                 coverage: Massachusetts -- Essex (county) -- Haverhill
+id              photo_name
