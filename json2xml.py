@@ -28,8 +28,8 @@ import pathlib
 import subprocess
 import sys
 
-report_limit = 200
-run_limit = 5000
+report_limit = 1000
+run_limit = 10000
 albums_path = 'e:/flickr-downloads/test/json/data_part1/albums.json'
 BASEFILENAME = {'jpg': 0, 'json': 1}['jpg']  # Determine if the XML file be named after the jpg or the json file
 
@@ -46,6 +46,12 @@ def main():
     pic_dir = pathlib.Path('pictures')
     json_dir = pathlib.Path('json')
     albums = load_albums(albums_path)
+    photo_count = len(tuple(pic_dir.iterdir()))
+    photo_count = photo_count if photo_count < run_limit else run_limit
+    print(f'{photo_count:>6} files to convert', flush=True)
+    print(f'{photo_count * 2 // 1000:>6} minutes to complete', flush=True)
+    print('\nBegin conversion process...', flush=True, end='')
+    input()
     if not os.path.exists(pic_dir):
         raise Exception('Directory `pictures` must exist and be populated.')
     if not os.path.exists(json_dir):
@@ -60,10 +66,11 @@ def main():
         album_memberships = find_albums(photo_id, albums)
         xml_file = flickr2dc(jpg_filename, json_filename, photo_id, photo_json, album_memberships)
         if not file_count % report_limit:
-            print(f'{str(datetime.datetime.now())[:16]} files done {file_count}', flush=True)
+            print(f'\t{str(datetime.datetime.now())[11:16]} {file_count} files done', flush=True)
         if file_count >= run_limit:
             break
     print(f'\n{file_count} files converted', flush=True)
+    print('number of json files not found: ', end='', flush=True)
     os.system('wc -l json_not_found')
 
 def setup():
