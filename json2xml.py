@@ -29,7 +29,8 @@ import subprocess
 import sys
 
 report_limit = 1000
-run_limit = 10000
+run_limit = 999999
+start_index = 17000
 albums_path = 'e:/flickr-downloads/test/json/data_part1/albums.json'
 BASEFILENAME = {'jpg': 0, 'json': 1}['jpg']  # Determine if the XML file be named after the jpg or the json file
 
@@ -46,12 +47,11 @@ def main():
     pic_dir = pathlib.Path('pictures')
     json_dir = pathlib.Path('json')
     albums = load_albums(albums_path)
-    photo_count = len(tuple(pic_dir.iterdir()))
-    photo_count = photo_count if photo_count < run_limit else run_limit
-    print(f'{photo_count:>6} files to convert', flush=True)
-    print(f'{photo_count * 2 // 1000:>6} minutes to complete', flush=True)
-    print('\nBegin conversion process...', flush=True, end='')
-    input()
+    #photo_count = len(tuple(pic_dir.iterdir()))
+    #photo_count = photo_count if photo_count < run_limit else run_limit
+    #print(f'{photo_count:>6} files to convert', flush=True)
+    #print(f'{photo_count * 2 // 1000:>6} minutes to complete', flush=True)
+    print('\nBegin conversion process...', flush=True)
     if not os.path.exists(pic_dir):
         raise Exception('Directory `pictures` must exist and be populated.')
     if not os.path.exists(json_dir):
@@ -59,9 +59,13 @@ def main():
     if not os.path.exists('xml'):
         os.system(f'mkdir xml')
     file_count = 0
-    for jpg_filename in pic_dir.iterdir():
-        file_count += 1
+    for photo_index, jpg_filename in enumerate(pic_dir.iterdir()):
+        if photo_index < start_index:
+            continue
         photo_id, json_filename = find_json(jpg_filename)  # number and json filename
+        if json_filename is None:
+            continue
+        file_count += 1
         photo_json = get_json(json_filename)
         album_memberships = find_albums(photo_id, albums)
         xml_file = flickr2dc(jpg_filename, json_filename, photo_id, photo_json, album_memberships)
