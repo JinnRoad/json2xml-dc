@@ -30,7 +30,7 @@ import sys
 
 report_limit = 1000
 run_limit = 999999
-start_index = 17000
+start_index = 32000
 albums_path = 'e:/flickr-downloads/test/json/data_part1/albums.json'
 BASEFILENAME = {'jpg': 0, 'json': 1}['jpg']  # Determine if the XML file be named after the jpg or the json file
 
@@ -58,7 +58,7 @@ def main():
         raise Exception('Directory `json` must exist and be populated.')
     if not os.path.exists('xml'):
         os.system(f'mkdir xml')
-    file_count = 0
+    file_count = start_index
     for photo_index, jpg_filename in enumerate(pic_dir.iterdir()):
         if photo_index < start_index:
             continue
@@ -82,13 +82,17 @@ def setup():
         file.write('')
 
 def find_json(jpg_filename):
-    photo_id = str(jpg_filename).split('_')[-2]
-    json_filename = f'photo_{photo_id}.json'
-    json_filename = find(json_filename, 'json')
-    if not json_filename:
-        with open('json_not_found', 'a') as file:
-            file.write(str(jpg_filename) + '\n')
-    return photo_id, json_filename
+    try:
+        photo_id = str(jpg_filename).split('_')[-2]
+        json_filename = f'photo_{photo_id}.json'
+        json_filename = find(json_filename, 'json')
+        if not json_filename:
+            with open('json_not_found.txt', 'a') as file:
+                file.write(str(jpg_filename) + '\n')
+        return photo_id, json_filename
+    except Exception as e:
+        print('ERROR: ', jpg_filename)
+        print(e)
 
 def find(name, path):
     for root, dirs, files in os.walk(path):
