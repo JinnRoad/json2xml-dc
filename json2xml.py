@@ -1,24 +1,33 @@
 """
+Author      Jamie Ghassibi
+Modified    2022-06-30
+Purpose     Convert flickr photo json metadata into preservica xml metadata
+
 Use
-    Put all images in one directory.
-    Put all json in one directory.
-        Otherwise, you may encounter path length issues.
-    Run in this directory. This script will reference the parent directory.
+
+    Put all images in pictures/
+    Run this script from its directory. It will reference the parent directory.
+
+    File Structure
+
+        /base-directory
+        ├───json2xml-dc
+        │   └───json2xml.py  # THIS SCRIPT
+        ├───json
+        │   ├───data_part1
+        │   │   ├───albums.json  # data_part1/ contains extra json files for album information, etc
+        │   │   ├───photo_00000000.json
+        │   │   └───...
+        │   ├───data_part2
+        │   │   ├───photo_00000000.json  # The rest of the data directories are json metadata for photos
+        │   │   └───...
+        │   └───...
+        ├───pictures
+        │   └───_d__3555_00000000_o.jpg  # The picture files don't have the same names as the pictures, but the ID is embedded
+        └───xml
+            └───_d__3555_00000000_o.xml  # I use the same name as the picture to name to xml file
+
 """
-# TODO ??? I have some strange names:
-#   /e/flickr-downloads/test/json2xml-dc/strange_titles.txt
-# TODO ??? For preservica, should the names use the jpg filename or the json filename? Example:
-#   photo_46057273972.json
-#   _d__3631_46057273972_o.jpg
-#   photo_46057273972.xml
-
-# TODO load album json to find album
-# TODO pass jpgname to flickr2dc
-# TODO Create provisional function to name the xml files using the jpgname
-
-# TODO Add comments
-# TODO look for the album information JSON on the external storage. use <dc:album></dc:album>.
-# TODO allow to run on entire directory, probably using pathlib
 
 from pprint import pprint
 import datetime
@@ -28,11 +37,20 @@ import pathlib
 import subprocess
 import sys
 
-report_limit = 1000
+# Output progress for every N number of json files converted.
+print_increment = 1000
+
+# Run the program on N files. Set to a high number to run on all files.
 run_limit = 999999
+
+# Skip the first N files.
 start_index = 32000
+
+# The path to the albums.json file
 albums_path = 'e:/flickr-downloads/test/json/data_part1/albums.json'
-BASEFILENAME = {'jpg': 0, 'json': 1}['jpg']  # Determine if the XML file be named after the jpg or the json file
+
+# Determine if the XML file be named after the jpg or the json file
+BASEFILENAME = {'jpg': 0, 'json': 1}['jpg']
 
 json2xml_fields = {
     'name': 'title',
@@ -42,34 +60,40 @@ json2xml_fields = {
     }
 
 def main():
+
+    # Create directory variables
     os.chdir('..')
-    setup()
     pic_dir = pathlib.Path('pictures')
     json_dir = pathlib.Path('json')
-    albums = load_albums(albums_path)
-    #photo_count = len(tuple(pic_dir.iterdir()))
-    #photo_count = photo_count if photo_count < run_limit else run_limit
-    #print(f'{photo_count:>6} files to convert', flush=True)
-    #print(f'{photo_count * 2 // 1000:>6} minutes to complete', flush=True)
-    print('\nBegin conversion process...', flush=True)
+
+    # Check that the directory structure is setup
     if not os.path.exists(pic_dir):
         raise Exception('Directory `pictures` must exist and be populated.')
     if not os.path.exists(json_dir):
         raise Exception('Directory `json` must exist and be populated.')
     if not os.path.exists('xml'):
         os.system(f'mkdir xml')
+
+    # Load albums.json
+    albums = load_albums(albums_path)
+
+    # Begin conversion
+    print('\nBegin conversion process...', flush=True)
     file_count = start_index
     for photo_index, jpg_filename in enumerate(pic_dir.iterdir()):
+        # Skip files until start index is reached.
+        # This allows the user to choose to restart the process roughly where they left off.
         if photo_index < start_index:
             continue
-        photo_id, json_filename = find_json(jpg_filename)  # number and json filename
+        photo_id, json_filename = find_json(jpg_filename)
+        # Skip if the json file is not found for the ID
         if json_filename is None:
             continue
         file_count += 1
         photo_json = get_json(json_filename)
         album_memberships = find_albums(photo_id, albums)
         xml_file = flickr2dc(jpg_filename, json_filename, photo_id, photo_json, album_memberships)
-        if not file_count % report_limit:
+        if not file_count % print_increment:
             print(f'\t{str(datetime.datetime.now())[11:16]} {file_count} files done', flush=True)
         if file_count >= run_limit:
             break
@@ -77,11 +101,9 @@ def main():
     print('number of json files not found: ', end='', flush=True)
     os.system('wc -l json_not_found')
 
-def setup():
-    with open('json_not_found' , 'w') as file:
-        file.write('')
-
 def find_json(jpg_filename):
+    """Find the corresponding json file for a photo"""
+    """If the json is not found, output the photo name to json_not_found.txt"""
     try:
         photo_id = str(jpg_filename).split('_')[-2]
         json_filename = f'photo_{photo_id}.json'
