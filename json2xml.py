@@ -5,7 +5,7 @@ Purpose     Convert flickr photo json metadata into preservica xml metadata
 
 Use
 
-    Put all images in pictures/
+    Put all images in pictures/, unnested.
     Run this script from its directory. It will reference the parent directory.
 
     File Structure
