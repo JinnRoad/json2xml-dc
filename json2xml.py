@@ -29,6 +29,8 @@ Use
 
 """
 
+# TODO grep alan-boisvert for two files and change the json jpg field's filename
+
 from pprint import pprint
 import datetime
 import json
@@ -37,6 +39,10 @@ import pathlib
 import subprocess
 import sys
 
+import download_flickr_files as dff
+
+stoptime = '2022-08-15 15:30' # Half an hour before you leave work, so this process can stop and be continued tomorrow.
+
 # Output progress for every N number of json files converted.
 print_increment = 1000
 
@@ -44,7 +50,7 @@ print_increment = 1000
 run_limit = 999999
 
 # Skip the first N files.
-start_index = 35000
+start_index = 0
 
 # The path to the albums.json file
 albums_path = 'e:/flickr-downloads/files-unzipped/json/data_part1/albums.json'
@@ -83,6 +89,12 @@ def main():
 
     file_count = start_index
     for photo_index, jpg_filename in enumerate(pic_dir.iterdir()):
+
+        # Stop early
+        if dff.time_to_stop(stoptime):
+            print('-'*40)
+            print('\nscript ended early for the end of the work day. Please continue tomorrow.')
+            return
 
         # Skip files until start index is reached.
         # This allows the user to choose to restart the process roughly where they left off.
