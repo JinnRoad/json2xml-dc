@@ -43,11 +43,8 @@ print_increment = 1000
 # Run the program on N files. Set to a high number to run on all files.
 run_limit = 999999
 
-# Skip the first N files.
-start_index = 32000
-
 # The path to the albums.json file
-albums_path = 'e:/flickr-downloads/test/json/data_part1/albums.json'
+albums_path = 'e:/flickr-downloads/files-unzipped/json/data_part1/albums.json'
 
 # Determine if the XML file be named after the jpg or the json file
 BASEFILENAME = {'jpg': 0, 'json': 1}['jpg']
@@ -60,6 +57,9 @@ json2xml_fields = {
     }
 
 def main():
+
+    # Skip the first N files.
+    start_index = int(input("How many files are already done in the pictures directory?\nRound to the nearest 10k, eg 42000: "))
 
     # Create directory variables
     os.chdir('..')
@@ -81,11 +81,19 @@ def main():
     print('\nBegin conversion process...', flush=True)
     file_count = start_index
     for photo_index, jpg_filename in enumerate(pic_dir.iterdir()):
+
+        # Print progress information
+        if not file_count % print_increment:
+            print(f'\t{str(datetime.datetime.now())[11:16]}\t{file_count:>7} files done', flush=True)
+
         # Skip files until start index is reached.
         # This allows the user to choose to restart the process roughly where they left off.
         if photo_index < start_index:
             continue
-        photo_id, json_filename = find_json(jpg_filename)
+        try:
+        	photo_id, json_filename = find_json(jpg_filename)
+        except:
+                pass
         # Skip if the json file is not found for the ID
         if json_filename is None:
             continue
@@ -93,8 +101,6 @@ def main():
         photo_json = get_json(json_filename)
         album_memberships = find_albums(photo_id, albums)
         xml_file = flickr2dc(jpg_filename, json_filename, photo_id, photo_json, album_memberships)
-        if not file_count % print_increment:
-            print(f'\t{str(datetime.datetime.now())[11:16]} {file_count} files done', flush=True)
         if file_count >= run_limit:
             break
     print(f'\n{file_count} files converted', flush=True)
@@ -141,7 +147,7 @@ def flickr2dc(jpg_filename, json_filename, photo_id, photo_json, album_membershi
     xml_filename = make_xml_file([jpg_filename, json_filename][BASEFILENAME])
     filetered_fields = filter_fields(photo_json, json2xml_fields)
     added_fields = add_fields(filetered_fields, jpg_filename, album_memberships)
-    xml_string = list2xml(added_fields)
+    xml_string = list2xml(added_fields).replace("&", "&amp;")
     with open(xml_filename, 'w') as file:
         file.write(xml_string)
     return xml_filename
@@ -219,4 +225,3 @@ def inspect(title, data, use_pprint=True):
     print()
 
 main()
-
