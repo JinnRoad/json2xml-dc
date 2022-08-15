@@ -43,6 +43,9 @@ print_increment = 1000
 # Run the program on N files. Set to a high number to run on all files.
 run_limit = 999999
 
+# Skip the first N files.
+start_index = 35000
+
 # The path to the albums.json file
 albums_path = 'e:/flickr-downloads/files-unzipped/json/data_part1/albums.json'
 
@@ -57,9 +60,6 @@ json2xml_fields = {
     }
 
 def main():
-
-    # Skip the first N files.
-    start_index = int(input("How many files are already done in the pictures directory?\nRound to the nearest 10k, eg 42000: "))
 
     # Create directory variables
     os.chdir('..')
@@ -79,12 +79,10 @@ def main():
 
     # Begin conversion
     print('\nBegin conversion process...', flush=True)
+    print(f'\t{str(datetime.datetime.now())[11:16]}\t{start_index:>7} files done before beginning', flush=True)
+
     file_count = start_index
     for photo_index, jpg_filename in enumerate(pic_dir.iterdir()):
-
-        # Print progress information
-        if not file_count % print_increment:
-            print(f'\t{str(datetime.datetime.now())[11:16]}\t{file_count:>7} files done', flush=True)
 
         # Skip files until start index is reached.
         # This allows the user to choose to restart the process roughly where they left off.
@@ -94,6 +92,7 @@ def main():
         	photo_id, json_filename = find_json(jpg_filename)
         except:
                 pass
+
         # Skip if the json file is not found for the ID
         if json_filename is None:
             continue
@@ -103,6 +102,11 @@ def main():
         xml_file = flickr2dc(jpg_filename, json_filename, photo_id, photo_json, album_memberships)
         if file_count >= run_limit:
             break
+
+        # Print progress information
+        if not file_count % print_increment:
+            print(f'\t{str(datetime.datetime.now())[11:16]}\t{file_count:>7} files done', flush=True)
+
     print(f'\n{file_count} files converted', flush=True)
     print('number of json files not found: ', end='', flush=True)
     os.system('wc -l json_not_found')
@@ -217,7 +221,7 @@ def list2xml(list_data):
 
 def make_xml_file(base_name):
     extension = pathlib.Path(base_name).suffix
-    return pathlib.Path('xml') / pathlib.Path(base_name).name.replace(extension, '.xml')
+    return pathlib.Path('xml') / pathlib.Path(base_name).name.replace(extension, '.jpg.metadata')
 
 def inspect(title, data, use_pprint=True):
     print(title.upper())
