@@ -1,22 +1,21 @@
 """
+
+Author: Jamie Ghassibi
+Date:   2022-08-31
+
 Dependencies
     git-bash
 
 Instructions
 
-    Create file directory like so
+    1.  Enter the filepath to the urls file and put it below in the urls_file variable.
 
-        # Output Directory
-        [some path]/files
-        [some path]/files/json
-        [some path]/files/media
+    2.  Choose an output directory and put it below in the output_directory variable.
+        If the directory doesn't exist already, it will be created.
+        For example, if output directory is:
+            /e/flickr-downloads/
 
-    Choose the stop time. This download process can be lengthy, so choose a time before you leave for work.
-
-    Create a file called `flickr_file_url_list` of all the URLs you wish to download.
-    This can be created easily by copy-pasting the filenames from flickr, then reformatting into a textfile using vim or similar.
-    After this script successfully downloads a zip directory, it will remove the filename from `flickr_file_url_list`.
-    This way, the next time this script is run, it will left off where it started.
+    3.  Choose the stop time. This download process can be lengthy, so choose a time before you leave for work.
 
 """
 
@@ -29,14 +28,17 @@ stoptime = '2022-08-31 12:30' # Choose a time before you leave work, so this pro
 # Give the ABSOLUTE PATHS to the urls file and the output directory
 # It's a good idea to make a backup of this url file, as this script will delete lines as it finishes them
 urls_file = pathlib.Path(r'E:\flickr-downloads\json2xml-dc\urls.txt')
-#output_directory = pathlib.Path(r'E:\flickr-downloads\files')
-output_directory = pathlib.Path(r'E:\flickr-downloads\files-download-test')
+output_directory = pathlib.Path(r'E:\flickr-downloads\files')
 
 def main():
 
     # Curl is used in download() to download files.
     # Curl cannot save to absolute paths for some reason, so we must cd to the output directory
+    # Ensure the output directories exist
+    os.system(f'mkdir {output_directory}')
     os.chdir(output_directory)
+    os.system('mkdir json')
+    os.system('mkdir media')
 
     # Get the list of URLs
     with open(urls_file) as file:
