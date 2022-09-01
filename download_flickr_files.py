@@ -23,12 +23,17 @@ import pathlib
 import datetime
 import os
 
-stoptime = '2022-09-01 12:30' # Choose a time before you leave work, so this process can stop and be continued tomorrow.
+
+# USER VARIABLES
+
+# Choose a time before you leave work, so this process can stop and be continued tomorrow.
+stoptime = '2022-09-01 12:30'
 
 # Give the ABSOLUTE PATHS to the urls file and the output directory
 # It's a good idea to make a backup of this url file, as this script will delete lines as it finishes them
 urls_file = pathlib.Path(r'E:\flickr-downloads\json2xml-dc\urls.txt')
 output_directory = pathlib.Path(r'E:\flickr-downloads\files')
+
 
 def main():
 
