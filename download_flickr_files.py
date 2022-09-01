@@ -23,7 +23,7 @@ import pathlib
 import datetime
 import os
 
-stoptime = '2022-08-31 15:30' # Choose a time before you leave work, so this process can stop and be continued tomorrow.
+stoptime = '2022-09-01 12:30' # Choose a time before you leave work, so this process can stop and be continued tomorrow.
 
 # Give the ABSOLUTE PATHS to the urls file and the output directory
 # It's a good idea to make a backup of this url file, as this script will delete lines as it finishes them
@@ -39,6 +39,7 @@ def main():
     os.chdir(output_directory)
     os.system('mkdir json')
     os.system('mkdir media')
+    print()
 
     # Get the list of URLs
     with open(urls_file) as file:
