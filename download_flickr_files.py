@@ -27,7 +27,7 @@ import os
 # USER VARIABLES
 
 # Choose a time before you leave work, so this process can stop and be continued tomorrow.
-stoptime = '2022-09-01 12:30'
+stoptime = '2022-09-02 15:30'
 
 # Give the ABSOLUTE PATHS to the urls file and the output directory
 # It's a good idea to make a backup of this url file, as this script will delete lines as it finishes them
