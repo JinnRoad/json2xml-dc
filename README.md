@@ -41,23 +41,23 @@ json2xml.py
 3.	Make a list of all the links for these files:
 	1.	Copy the first link in Account Data, which will look something like this:
 
-		https://s3.amazonaws.com/flickr-metadump-us-east-1/72157720971061034_0a06d767fc16_part1.zip
+		https://s3.amazonaws.com/flickr-metadump-us-east-1/..._part1.zip
 
 		Notice the last part of that file is "part1".
 		Use some tool (vim, bash, etc) to quickly make a list of files like:
 
-		https://s3.amazonaws.com/flickr-metadump-us-east-1/72157720971061034_0a06d767fc16_part1.zip
-		https://s3.amazonaws.com/flickr-metadump-us-east-1/72157720971061034_0a06d767fc16_part2.zip
+		https://s3.amazonaws.com/flickr-metadump-us-east-1/..._part1.zip
+		https://s3.amazonaws.com/flickr-metadump-us-east-1/..._part2.zip
 		.
 		.
 		.
-		https://s3.amazonaws.com/flickr-metadump-us-east-1/72157720971061034_0a06d767fc16_part10.zip
+		https://s3.amazonaws.com/flickr-metadump-us-east-1/..._part10.zip
 
 	2.	Repeat the same process for the links in the Photos and Videos section:
 
-		https://downloads.flickr.com/d/data_49927949_0b42c02b4bf747e7feb8023cd52889f41554aa37cc0118a2b820e51c6cfa667a_1.zip
-		https://downloads.flickr.com/d/data_49927949_0b42c02b4bf747e7feb8023cd52889f41554aa37cc0118a2b820e51c6cfa667a_2.zip
+		https://downloads.flickr.com/d/data_..._1.zip
+		https://downloads.flickr.com/d/data_..._2.zip
 		.
 		.
 		.
-		https://downloads.flickr.com/d/data_49927949_0b42c02b4bf747e7feb8023cd52889f41554aa37cc0118a2b820e51c6cfa667a_150.zip
+		https://downloads.flickr.com/d/data_..._150.zip
